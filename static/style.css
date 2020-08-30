@@ -1,0 +1,83 @@
+
+html{
+    background-color:#004840;
+}
+.player-name{
+    height:50px;
+    font-size:30px;
+    font-family: 'Lobster', cursive;
+    margin:0;
+}
+#player1,#player2,#player3,#player4{
+    background-color: #004840;
+    height:350px;
+    width:450px;
+    padding:0;
+    color:white;
+}
+#player1{
+    position:absolute;
+    top:0%;
+    left:50%;
+    transform: translateX(-50%);
+}
+#player2{
+    position:absolute;
+    top:50%;
+    left:0%;
+    transform: translateY(-50%);
+}
+#player3{
+    position:absolute;
+    bottom:0%;
+    left:50%;
+    transform: translateX(-50%);
+}
+#player4{
+    position:absolute;
+    top:50%;
+    right:0%;
+    transform: translateY(-50%);
+}
+#start-msg{
+    font-family: 'Lobster', cursive;
+    font-size:50px;
+    position:absolute;
+    top:45%;
+    left:50%;
+    transform: translateY(-50%) translateX(-50%);
+    color:#daa520;
+}
+#win-msg1,#win-msg2,#win-msg3,#win-msg4{
+    font-family: 'Lobster', cursive;
+    font-size:30px;
+    position:absolute;
+    color:#daa520;
+    z-index: -1;
+}
+#win-msg1{
+    top:200px;
+    left:50%;
+    transform: translateY(-50%) translateX(-50%);
+}
+#win-msg2{
+    top:50%;
+    left:225px;
+    transform: translateY(-50%) translateX(-50%);
+}
+#win-msg3{
+    bottom:150px;
+    left:50%;
+    transform: translateY(+50%) translateX(-50%);
+}
+#win-msg4{
+    top:50%;
+    right:225px;
+    transform: translateY(-50%) translateX(+50%);
+}
+#canvas1,#canvas2,#canvas3,#canvas4{
+    width:450px;
+    height:300px;
+    object-fit: fill;
+    background-color: 'yellow';
+}

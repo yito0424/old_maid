@@ -1,0 +1,36 @@
+<html>
+  <head>
+    <title>Trump Game</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <script src="/socket.io/socket.io.js"></script>
+    <link href="/static/style.css" media="all" rel="Stylesheet" type="text/css" /> 
+    <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  </head>
+  <body style="width:100%;height:100%;margin:0;" onload="player_join(); load_img();">
+    <h1 id='start-msg'>Press Shift to Start</h1>
+    <h2 class="win-msg" id='win-msg1'>test</h2>
+    <h2 class="win-msg" id='win-msg2'></h2>
+    <h2 class="win-msg" id='win-msg3'></h2>
+    <h2 class="win-msg" id='win-msg4'></h2>
+    <div id='player1'>
+      <p class='player-name'>Player1</p>
+      <canvas id="canvas1" width=450px height=300px style="object-fit:none;"></canvas>
+    </div>
+    <div id='player2'>
+      <p class='player-name'>Player2</p>
+      <canvas id="canvas2" width=450px height=300px style="object-fit:none;"></canvas>
+    </div>
+    <div id='player3'>
+      <p class='player-name'>Player3</p>
+      <canvas id="canvas3" width=450px height=300px style="object-fit:none;"></canvas>
+    </div>
+    <div id='player4'>
+      <p class='player-name'>Player4</p>
+      <canvas id="canvas4" width=450px height=300px style="object-fit:none;"></canvas>
+    </div>
+    <canvas id="canvas-2d" width="100" height="100" style="width:100%;height:100%;object-fit:contain;"></canvas>
+    <div id="image-wrapper" style="display: none;"></div>
+  </body>
+  <script src="/static/script.js"></script>
+</html>
