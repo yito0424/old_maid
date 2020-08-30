@@ -310,6 +310,7 @@ socket.on('location', (players,cursor) => {
 
 socket.on('disconnected',()=>{
     StartMsg.innerHTML='Someone disconnected';
-    wait_and_reset(5,0);
+    player_list={};
+    wait_and_reset(5,1);
     player_join();
 });
