@@ -187,11 +187,11 @@ io.on('connection',function(socket){
         }
       }
       io.sockets.emit('location',player_list,cursor);
-      io.sockets.emit('finish');
       player_list={};
       player_num=0;
       playerid=0;
       winner_num=0;
+      io.sockets.emit('finish');
     }
   });
   socket.on('move',(pulled_player_id,moved_card,moved_card_idx)=>{

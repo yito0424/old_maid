@@ -10,6 +10,7 @@ const ImageLoader=document.getElementById('image-wrapper');
 var player_list={};
 var startflag=0;
 var yourid;
+var eventlistener_exist=[false,false,false,false];
 const TrumpHeight=100;
 const TrumpWidth=68;
 const StartMsg=document.getElementById('start-msg');
@@ -185,6 +186,7 @@ socket.on('reject',()=>{
 })
 socket.on('started',(player_num)=>{
     startflag=1;
+    console.log('1にしました');
     StartMsg.innerHTML='';
     var win_msg_list=document.getElementsByClassName('win-msg');
     Object.values(win_msg_list).forEach((msg)=>{
@@ -193,18 +195,21 @@ socket.on('started',(player_num)=>{
     });
     for(var i=1;i<=player_num;i++){
         const canvas=document.getElementById(CanvasIdtoName[i]);
-        canvas.addEventListener('click',{
-            handleEvent:choose_card,
-            canvas:canvas
-        });
-        canvas.addEventListener('mousedown',{
-            handleEvent:move_card,
-            canvas:canvas
-        });
-        canvas.addEventListener('mousemove',{
-            handleEvent:move_cursor,
-            canvas:canvas
-        });
+        if(!eventlistener_exist[i]){
+            canvas.addEventListener('click',{
+                handleEvent:choose_card,
+                canvas:canvas
+            });
+            canvas.addEventListener('mousedown',{
+                handleEvent:move_card,
+                canvas:canvas
+            });
+            canvas.addEventListener('mousemove',{
+                handleEvent:move_cursor,
+                canvas:canvas
+            });
+        }
+        eventlistener_exist[i]=true;
     }
 })
 async function wait_and_reset(sec,reset_flag){
@@ -212,48 +217,12 @@ async function wait_and_reset(sec,reset_flag){
         return new Promise(resolve => setTimeout(resolve, sec*1000));
     }
     await wait(sec);
-    StartMsg.innerHTML='Press Shift to Start';
     if(reset_flag==1){
         startflag=0;
+        console.log('0にしました');
     }
+    StartMsg.innerHTML='Press Shift to Start';
 }
-
-// canvas2.addEventListener('click',{
-//     handleEvent:choose_card,
-//     canvas:canvas2
-// });
-// canvas2.addEventListener('mousedown',{
-//     handleEvent:move_card,
-//     canvas:canvas2
-// });
-// canvas2.addEventListener('mousemove',{
-//     handleEvent:move_cursor,
-//     canvas:canvas2
-// });
-// canvas3.addEventListener('click',{
-//     handleEvent:choose_card,
-//     canvas:canvas3
-// });
-// canvas3.addEventListener('mousedown',{
-//     handleEvent:move_card,
-//     canvas:canvas3
-// });
-// canvas3.addEventListener('mousemove',{
-//     handleEvent:move_cursor,
-//     canvas:canvas3
-// });
-// canvas4.addEventListener('click',{
-//     handleEvent:choose_card,
-//     canvas:canvas4
-// });
-// canvas4.addEventListener('mousedown',{
-//     handleEvent:move_card,
-//     canvas:canvas4
-// });
-// canvas4.addEventListener('mousemove',{
-//     handleEvent:move_cursor,
-//     canvas:canvas4
-// });
 
 document.addEventListener('keydown', (event) => {
     if(event.keyCode==32 && startflag==0){
@@ -299,6 +268,7 @@ socket.on('finish',()=>{
 
 socket.on('location', (players,cursor) => {
     player_list=players;
+    console.log(players);
     Object.values(players).forEach((player,idx)=>{
         if(player.status=='pulled' || player.status=='pull'){
             const canvas=document.getElementById('canvas'+String(player.id));
