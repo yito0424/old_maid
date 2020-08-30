@@ -292,6 +292,9 @@ socket.on('location', (players,cursor) => {
                 const CursorImage=document.getElementById('cursor');
                 context.drawImage(CursorImage,cursor.x-10,cursor.y,77,105);
             }
+            if(player.status=='pull'){
+                StartMsg.innerHTML='Player'+player.id+'’s Turn';
+            }
         }
         else if(player.status=='winner'){
             const elem=document.getElementById('win-msg'+player.id);
