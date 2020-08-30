@@ -5,6 +5,7 @@ const socketIO = require('socket.io');
 const app = express();
 const server = http.Server(app);
 const io = socketIO(server);
+const port=process.env.PORT || 3000
 
 var playerid=0;
 var player_num=0;
@@ -221,5 +222,5 @@ app.get('/', (req, res) => {
 });
 
 server.listen(3000, () => {
-    console.log("Starting server on port 3000!");
+    console.log("Starting server on port"+port);
 });
