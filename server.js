@@ -134,6 +134,9 @@ io.on('connection',function(socket){
       else{player_list[i].status='normal';}
     }
     io.sockets.emit('started',player_num);
+    socket.on('push',()=>{
+      io.sockets.emit('pushed');
+    });
   });
   socket.on('pull',(pull_player_id,pulled_card,pulled_card_idx)=>{
     var pulled_player_id;

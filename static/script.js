@@ -230,10 +230,11 @@ document.addEventListener('keydown', (event) => {
         startflag=1;
         StartMsg.innerHTML='';
     };
+    socket.emit('push');
 });
 
-socket.on('test',(elem)=>{
-    console.log('get return'+elem);
+socket.on('pushed',()=>{
+    console.log('get return');
 });
 
 socket.on('distributed',(players)=>{
@@ -268,7 +269,7 @@ socket.on('finish',()=>{
 
 socket.on('location', (players,cursor) => {
     player_list=players;
-    console.log(players);
+    //console.log(players);
     Object.values(players).forEach((player,idx)=>{
         if(player.status=='pulled' || player.status=='pull'){
             const canvas=document.getElementById('canvas'+String(player.id));
