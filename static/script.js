@@ -10,6 +10,7 @@ const ImageLoader=document.getElementById('image-wrapper');
 var player_list={};
 var startflag=0;
 var yourid;
+var roomid;
 var eventlistener_exist=[false,false,false,false];
 const TrumpHeight=100;
 const TrumpWidth=68;
@@ -34,10 +35,29 @@ const mark={
     5:'joker'
   };
 
+function get_query(){
+    var result = {};
+    if( 1 < window.location.search.length ){
+        var query = window.location.search.substring( 1 );
+        var parameters = query.split( '&' );
+        if( parameters.length>1){console.log('toomany parameter of GET');}
+        else{
+            var parameter=parameters[0].split('=');
+            var paramName=decodeURIComponent(parameter[0]);
+            var paramValue=decodeURIComponent(parameter[1]);
+            if(paramName=='roomid'){roomid=paramValue;}
+            console.log('roomid'+roomid+'を設定')
+        }
+    }
+}
+
 
 function player_join(){
-    socket.emit('join');
-};
+    socket.emit('join',roomid);
+}
+function player_leave(){
+    socket.emit('leave');
+}
 
 function load_img(){
     for(var mk=1;mk<=4;mk++){
@@ -67,7 +87,7 @@ function load_img(){
     ImageLoader.appendChild(elem3);
 
     console.log('all image loaded');
-};
+}
 
 function draw_card(canvas_id,context,card){
     if(CanvasNametoId[canvas_id]==yourid){
@@ -85,6 +105,7 @@ function draw_card(canvas_id,context,card){
 }
 
 function choose_card(event){
+    console.log('スタートフラッグが0?');
     if(startflag==0){return;}
     var canvasrect = this.canvas.getBoundingClientRect();
     const x=event.clientX-canvasrect.left;
@@ -221,7 +242,7 @@ async function wait_and_reset(sec,reset_flag){
         startflag=0;
         console.log('0にしました');
     }
-    StartMsg.innerHTML='Press Shift to Start';
+    StartMsg.innerHTML='Press Space to Start';
 }
 
 document.addEventListener('keydown', (event) => {
@@ -263,13 +284,15 @@ socket.on('distributed',(players)=>{
 socket.on('finish',()=>{
     StartMsg.innerHTML='Finish!!';
     player_list={};
-    wait_and_reset(5,1);
+    player_leave();
     player_join();
+    socket.emit('remove-interval');
+    wait_and_reset(5,1);
 });
 
 socket.on('location', (players,cursor) => {
     player_list=players;
-    //console.log(players);
+    console.log(players);
     Object.values(players).forEach((player,idx)=>{
         if(player.status=='pulled' || player.status=='pull'){
             const canvas=document.getElementById('canvas'+String(player.id));
@@ -315,6 +338,8 @@ socket.on('location', (players,cursor) => {
 socket.on('disconnected',()=>{
     StartMsg.innerHTML='Someone disconnected';
     player_list={};
-    wait_and_reset(5,1);
+    player_leave();
     player_join();
+    socket.emit('remove-interval');
+    wait_and_reset(5,1);
 });
