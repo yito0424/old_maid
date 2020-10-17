@@ -25,7 +25,7 @@ class Player{
   }
 }
 
-function executive_access(socket,redisClient,roomid){
+function executive_access(socket,redisClient,roomid,playerid=0){
   redisClient.watch(roomid,(watchError)=>{
     if(watchError)throw watchError;
     redisClient.get(roomid,(error, value) =>{
@@ -34,8 +34,14 @@ function executive_access(socket,redisClient,roomid){
       console.log(roomObject);
       roomObject.playerid++;
       roomObject.player_num++;
-      const player=new Player(roomObject.playerid);
-      roomObject.player_list[roomObject.playerid]=player;
+      if(playerid){
+        const player=new Player(playerid);
+        roomObject.player_list[playerid]=player;
+      }
+      else{
+        const player=new Player(roomObject.playerid);
+        roomObject.player_list[roomObject.playerid]=player;
+      }
       console.log(roomObject);
       redisClient
       .multi()
@@ -44,9 +50,13 @@ function executive_access(socket,redisClient,roomid){
         if(error)throw error;
         console.log('results='+results);
         if(results==null){
-          executive_access(socket,redisClient,roomid);
+          executive_access(socket,redisClient,roomid,playerid);
         }
-        socket.emit('joined',roomObject.playerid);
+        if(playerid){
+          socket.emit('joined', playerid);
+        }else{
+          socket.emit('joined',roomObject.playerid);
+        }
       })
     });
   })
@@ -138,40 +148,50 @@ io.on('connection',function(socket){
   let timer;
   const redisClient=redis.createClient();
 
-  socket.on('join',(roomid)=>{
+  socket.on('join',(roomid,rejoin_id)=>{
     socket.join(roomid);
     //socket.removeAllListeners('start','pull','move','cursor','disconnect','remove-interval');
     console.log('1');
-    io.to(roomid).clients(function(_, clients){
-      if(clients.length==1){
-        console.log('1人目');
-        roomObject={};
-        //初期化
-        roomObject.playerid=1;
-        roomObject.player_num=1;
-        roomObject.winner_num=0;
-        console.log('2');
-        player=new Player(roomObject.playerid);
-        roomObject.player_list={}
-        roomObject.player_list[roomObject.playerid]=player;
-        roomObject.cursor={
-          x:null,
-          y:null
+    if(rejoin_id){
+      redisClient.get(roomid,(error,value)=>{
+        executive_access(socket,redisClient,roomid,rejoin_id);
+      })
+    }
+    else{
+      io.to(roomid).clients(function(_, clients){
+        if(clients.length==1){
+          redisClient.get(roomid,(error,value)=>{
+            console.log(JSON.parse(value));
+          })
+          console.log('1人目');
+          roomObject={};
+          //初期化
+          roomObject.playerid=1;
+          roomObject.player_num=1;
+          roomObject.winner_num=0;
+          console.log('2');
+          player=new Player(roomObject.playerid);
+          roomObject.player_list={}
+          roomObject.player_list[roomObject.playerid]=player;
+          roomObject.cursor={
+            x:null,
+            y:null
+          }
+          console.log('3');
+          redisClient.set(roomid, JSON.stringify(roomObject));
+          socket.emit('joined',roomObject.playerid);
         }
-        console.log('3');
-        redisClient.set(roomid, JSON.stringify(roomObject));
-        socket.emit('joined',roomObject.playerid);
-      }
-      else if(clients.length<=4){
-        console.log('2人目以降');
-        console.log('------------');
-        executive_access(socket,redisClient,roomid);
-      }
-      else{
-        io.to(roomid).emit('over-notice');
-        return;
-      }
-    });
+        else if(clients.length<=4){
+          console.log('2人目以降');
+          console.log('------------');
+          executive_access(socket,redisClient,roomid);
+        }
+        else{
+          io.to(roomid).emit('over-notice');
+          return;
+        }
+      });
+    }
 
     //スタート時にリスナーをセット
     console.log('リスナーをセット');
@@ -278,7 +298,11 @@ io.on('connection',function(socket){
             clearInterval(timer);
             console.log('インターバルをクリア');
           }
-          redisClient.del(roomid);
+          roomObject.player_list={};
+          roomObject.playerid=0;
+          roomObject.player_num=0;
+          roomObject.winner_num=0;
+          redisClient.set(roomid, JSON.stringify(roomObject));
           
           var leaved_socket_list=[];
           Object.values(io.to(roomid).sockets).forEach((socket)=>{
@@ -294,7 +318,7 @@ io.on('connection',function(socket){
             }
           });
           leaved_socket_list.forEach((socket)=>{
-            socket.emit('leaved');
+            socket.emit('leaved-after-finish');
           })
         }
         console.log('winner num===='+roomObject.winner_num);
@@ -342,7 +366,7 @@ io.on('connection',function(socket){
         }
       });
       leaved_socket_list.forEach((socket)=>{
-        socket.emit('leaved');
+        socket.emit('leaved-after-disconnect');
       })
       socket.removeAllListeners('remove-interval');
       console.log('disconnected');

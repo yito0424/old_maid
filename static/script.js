@@ -82,8 +82,8 @@ function get_query(){
 }
 
 
-function player_join(){
-    socket.emit('join',roomid);
+function player_join(rejoin_id=0){  //if rejoin_id==0, it's first time to join
+    socket.emit('join',roomid,rejoin_id);
 }
 function player_leave(){  
     socket.emit('leave');
@@ -371,6 +371,9 @@ socket.on('disconnected',()=>{
     wait_and_reset(5,1);
 });
 
-socket.on('leaved',()=>{
+socket.on('leaved-after-finish',()=>{
+    player_join(yourid);
+})
+socket.on('leaved-after-disconnect',()=>{
     player_join();
 })
