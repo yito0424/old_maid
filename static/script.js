@@ -85,7 +85,7 @@ function get_query(){
 function player_join(){
     socket.emit('join',roomid);
 }
-function player_leave(){
+function player_leave(){  
     socket.emit('leave');
 }
 
@@ -157,6 +157,7 @@ function choose_card(event){
         });
         if(pulled_card==null){return;}
         socket.emit('pull',yourid,pulled_card,pulled_card_idx);
+        console.log('pullしました');
     }
 }
 
@@ -314,8 +315,6 @@ socket.on('distributed',(players)=>{
 socket.on('finish',()=>{
     StartMsg.innerHTML='Finish!!';
     player_list={};
-    player_leave();
-    player_join();
     socket.emit('remove-interval');
     wait_and_reset(5,1);
 });
@@ -368,8 +367,10 @@ socket.on('location', (players,cursor) => {
 socket.on('disconnected',()=>{
     StartMsg.innerHTML='Someone disconnected';
     player_list={};
-    player_leave();
-    player_join();
     socket.emit('remove-interval');
     wait_and_reset(5,1);
 });
+
+socket.on('leaved',()=>{
+    player_join();
+})

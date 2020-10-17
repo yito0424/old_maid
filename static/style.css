@@ -71,13 +71,18 @@ html{
     transform: translateY(-50%);
 }*/
 
-#win-msg1,#win-msg2,#win-msg3,#win-msg4{
+.win-msg{
     font-family: 'Lobster', cursive;
     font-size:30px;
     position:absolute;
+    top: 10px;
+    left: 50%;
     color:#daa520;
+    margin:0;
+    height:50px;
     z-index: -1;
 }
+
 #win-msg1{
     top:200px;
     left:50%;
@@ -98,13 +103,14 @@ html{
     right:225px;
     transform: translateY(-50%) translateX(+50%);
 }
+
 .game-canvas{
     /* width:450px;
     height:300px; */
-    width:100%;
+    vertical-align: middle;
+    width:50%;
     object-fit: fill;
     background-color: 'yellow';
-    position: absolute;
-    bottom: 0;
-    right: 0;
+    float: left;
+
 }
