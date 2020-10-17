@@ -344,6 +344,8 @@ io.on('connection',function(socket){
 });
 
 app.use('/static', express.static(__dirname + '/static'));
+app.use('/skyway', express.static(__dirname + '/skyway'));
+
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '/static/index.html'));
 });

@@ -2,36 +2,64 @@
   <head>
     <title>Trump Game</title>
     <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
-    <meta name="description" content="Simple old maid game.Please open from your computer.">
     <script src="/socket.io/socket.io.js"></script>
     <link href="/static/style.css" media="all" rel="Stylesheet" type="text/css" /> 
     <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <link rel="stylesheet" href="../skyway/skyway_style.css">
+    <!-- Favicons -->
+    <link href="/static/favicon.ico" rel="icon">
+    <link href="/static/favicon.ico" rel="apple-touch-icon">
+
   </head>
   <body style="width:100%;height:100%;margin:0;" onload="get_query(); player_join(); load_img();">
-    <h1 id='start-msg'>Press Shift to Start</h1>
-    <h2 class="win-msg" id='win-msg1'>test</h2>
-    <h2 class="win-msg" id='win-msg2'></h2>
-    <h2 class="win-msg" id='win-msg3'></h2>
-    <h2 class="win-msg" id='win-msg4'></h2>
-    <div id='player1'>
-      <p class='player-name'>Player1</p>
-      <canvas id="canvas1" width=450px height=300px style="object-fit:none;"></canvas>
+    <div class="container">
+    <h1 id='start-msg'>Press Space to Start</h1>
+
+    <div class="box-wrap"></div>
+      <div class="box tl" id='player1'>
+          <p class='player-name'>Player1</p>
+          <h2 class="win-msg" id='win-msg1'>test</h2>
+          <button id="audio_mute_trigger" class="mute_button">ミュート</button>
+          <button id="video_mute_trigger" class="mute_button">ビデオの停止</button>
+          <video id="js-local-stream" class="streams"></video>
+          <canvas id="canvas1" width=450px height=300px style="object-fit:none;" class="game-canvas"></canvas>
+      </div>
+      <div class="box tr" id='player2'>
+          <p class='player-name'>Player2</p>
+          <h2 class="win-msg" id='win-msg2'>test</h2>
+          <video class="streams" id="person0"></video>
+          <canvas id="canvas2" width=450px height=300px style="object-fit:none;" class="game-canvas"></canvas>
+      </div>
+      <div class="box bl" id='player3'>
+        <p class='player-name'>Player3</p>
+        <h2 class="win-msg" id='win-msg3'>test</h2>
+        <video class="streams" id="person1"></video>
+        <canvas id="canvas3" width=450px height=300px style="object-fit:none;" class="game-canvas"></canvas>
+      </div>
+      <div class="box br" id='player4'>
+        <p class='player-name'>Player4</p>
+        <h2 class="win-msg" id='win-msg4'>test</h2>
+        <video class="streams" id="person2"></video>
+        <canvas id="canvas4" width=450px height=300px style="object-fit:none;" class="game-canvas"></canvas>
+      </div>
     </div>
-    <div id='player2'>
-      <p class='player-name'>Player2</p>
-      <canvas id="canvas2" width=450px height=300px style="object-fit:none;"></canvas>
-    </div>
-    <div id='player3'>
-      <p class='player-name'>Player3</p>
-      <canvas id="canvas3" width=450px height=300px style="object-fit:none;"></canvas>
-    </div>
-    <div id='player4'>
-      <p class='player-name'>Player4</p>
-      <canvas id="canvas4" width=450px height=300px style="object-fit:none;"></canvas>
-    </div>
-    <canvas id="canvas-2d" width="100" height="100" style="width:100%;height:100%;object-fit:contain;"></canvas>
+
     <div id="image-wrapper" style="display: none;"></div>
+
+    <div>
+      <pre class="messages" id="js-messages"></pre>
+    </div>
+    <button id="js-leave-trigger">Leave</button>
+
+
+  </div>
   </body>
   <script src="/static/script.js"></script>
+
+  <script src="//cdn.webrtc.ecl.ntt.com/skyway-latest.js"></script>
+  <script src="../skyway/key.js"></script>
+  <script src="../skyway/skyway_script.js"></script>
+
 </html>
