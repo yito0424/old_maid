@@ -388,6 +388,26 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '/static/index.html'));
 });
 
+app.post('/', (req,res)=>{
+  console.log(req.headers);
+})
+
+var getInformations = function(request){
+	return {
+		'リクエスト情報':{
+			'データ送信':request.method,
+			'ホスト（ヘッダー情報）':request.headers['host'],
+			'コネクション（ヘッダー情報）':request.headers['connection'],
+			'キャッシュコントロール（ヘッダー情報）':request.headers['cache-control'],
+			'アクセプト（ヘッダー情報）':request.headers['accept'],
+			'アップグレードリクエスト（ヘッダー情報）':request.headers['upgrade-insecure-requests'],
+			'ユーザーエージェント（ヘッダー情報）':request.headers['user-agent'],
+			'エンコード（ヘッダー情報）':request.headers['accept-encoding'],
+			'言語（ヘッダー情報）':request.headers['accept-language'],
+		}
+	};
+};
+
 server.listen(process.env.PORT || 3000, () => {
     console.log("Starting server on port"+port);
 });
