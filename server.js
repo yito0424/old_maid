@@ -25,7 +25,7 @@ class Player{
   }
 }
 
-function executive_access(socket,redisClient,roomid){
+function executive_access(socket,redisClient,roomid,playerid=0){
   redisClient.watch(roomid,(watchError)=>{
     if(watchError)throw watchError;
     redisClient.get(roomid,(error, value) =>{
@@ -34,8 +34,14 @@ function executive_access(socket,redisClient,roomid){
       console.log(roomObject);
       roomObject.playerid++;
       roomObject.player_num++;
-      const player=new Player(roomObject.playerid);
-      roomObject.player_list[roomObject.playerid]=player;
+      if(playerid){
+        const player=new Player(playerid);
+        roomObject.player_list[playerid]=player;
+      }
+      else{
+        const player=new Player(roomObject.playerid);
+        roomObject.player_list[roomObject.playerid]=player;
+      }
       console.log(roomObject);
       redisClient
       .multi()
@@ -44,9 +50,13 @@ function executive_access(socket,redisClient,roomid){
         if(error)throw error;
         console.log('results='+results);
         if(results==null){
-          executive_access(socket,redisClient,roomid);
+          executive_access(socket,redisClient,roomid,playerid);
         }
-        socket.emit('joined',roomObject.playerid);
+        if(playerid){
+          socket.emit('joined', playerid);
+        }else{
+          socket.emit('joined',roomObject.playerid);
+        }
       })
     });
   })
@@ -138,40 +148,50 @@ io.on('connection',function(socket){
   let timer;
   const redisClient=redis.createClient();
 
-  socket.on('join',(roomid)=>{
+  socket.on('join',(roomid,rejoin_id)=>{
     socket.join(roomid);
     //socket.removeAllListeners('start','pull','move','cursor','disconnect','remove-interval');
     console.log('1');
-    io.to(roomid).clients(function(_, clients){
-      if(clients.length==1){
-        console.log('1人目');
-        roomObject={};
-        //初期化
-        roomObject.playerid=1;
-        roomObject.player_num=1;
-        roomObject.winner_num=0;
-        console.log('2');
-        player=new Player(roomObject.playerid);
-        roomObject.player_list={}
-        roomObject.player_list[roomObject.playerid]=player;
-        roomObject.cursor={
-          x:null,
-          y:null
+    if(rejoin_id){
+      redisClient.get(roomid,(error,value)=>{
+        executive_access(socket,redisClient,roomid,rejoin_id);
+      })
+    }
+    else{
+      io.to(roomid).clients(function(_, clients){
+        if(clients.length==1){
+          redisClient.get(roomid,(error,value)=>{
+            console.log(JSON.parse(value));
+          })
+          console.log('1人目');
+          roomObject={};
+          //初期化
+          roomObject.playerid=1;
+          roomObject.player_num=1;
+          roomObject.winner_num=0;
+          console.log('2');
+          player=new Player(roomObject.playerid);
+          roomObject.player_list={}
+          roomObject.player_list[roomObject.playerid]=player;
+          roomObject.cursor={
+            x:null,
+            y:null
+          }
+          console.log('3');
+          redisClient.set(roomid, JSON.stringify(roomObject));
+          socket.emit('joined',roomObject.playerid);
         }
-        console.log('3');
-        redisClient.set(roomid, JSON.stringify(roomObject));
-        socket.emit('joined',roomObject.playerid);
-      }
-      else if(clients.length<=4){
-        console.log('2人目以降');
-        console.log('------------');
-        executive_access(socket,redisClient,roomid);
-      }
-      else{
-        io.to(roomid).emit('over-notice');
-        return;
-      }
-    });
+        else if(clients.length<=4){
+          console.log('2人目以降');
+          console.log('------------');
+          executive_access(socket,redisClient,roomid);
+        }
+        else{
+          io.to(roomid).emit('over-notice');
+          return;
+        }
+      });
+    }
 
     //スタート時にリスナーをセット
     console.log('リスナーをセット');
@@ -217,7 +237,7 @@ io.on('connection',function(socket){
     //カードが引かれたとき
     socket.on('pull',(pull_player_id,pulled_card,pulled_card_idx)=>{
       var pulled_player_id;
-      console.log('おくられました');
+      console.log('pullされました');
 
       redisClient.get(roomid,(_,value)=>{
         roomObject=JSON.parse(value);
@@ -249,6 +269,7 @@ io.on('connection',function(socket){
           player_list[pull_player_id].status='winner';
           player_list[pull_player_id].rank=roomObject.winner_num;
         }
+
         if(roomObject.winner_num<player_num-1){
           var count=0;
           for(var i=0;i<player_num;i++){
@@ -265,6 +286,7 @@ io.on('connection',function(socket){
               }
             }
           }
+          redisClient.set(roomid, JSON.stringify(roomObject));
         }else{
           for(var i=1;i<=player_num;i++){
             if(player_list[(pulled_player_id+i)%player_num+1].status!='winner'){
@@ -276,19 +298,30 @@ io.on('connection',function(socket){
             clearInterval(timer);
             console.log('インターバルをクリア');
           }
-          redisClient.del(roomid);
+          roomObject.player_list={};
+          roomObject.playerid=0;
+          roomObject.player_num=0;
+          roomObject.winner_num=0;
+          redisClient.set(roomid, JSON.stringify(roomObject));
           
+          var leaved_socket_list=[];
           Object.values(io.to(roomid).sockets).forEach((socket)=>{
-            socket.removeAllListeners('start');
-            socket.removeAllListeners('pull');
-            socket.removeAllListeners('move');
-            socket.removeAllListeners('cursor');
-            socket.removeAllListeners('disconnect');
+            if(socket.rooms[roomid]){
+              socket.removeAllListeners('start');
+              socket.removeAllListeners('pull');
+              socket.removeAllListeners('move');
+              socket.removeAllListeners('cursor');
+              socket.removeAllListeners('disconnect');
+              socket.emit('finish');
+              socket.leave(roomid);
+              leaved_socket_list.push(socket);
+            }
           });
-          io.to(roomid).emit('finish');
+          leaved_socket_list.forEach((socket)=>{
+            socket.emit('leaved-after-finish');
+          })
         }
         console.log('winner num===='+roomObject.winner_num);
-        redisClient.set(roomid, JSON.stringify(roomObject));
       });
     });
     //カードが動かされたとき
@@ -309,29 +342,34 @@ io.on('connection',function(socket){
         redisClient.set(roomid,JSON.stringify(roomObject));
       });
     });
-    socket.on('leave',()=>{
-      socket.leave(roomid);
-      console.log('leaveしました');
-      socket.removeAllListeners('leave');
-    })
+
     socket.on('disconnect',()=>{
       if(timer){
         clearInterval(timer);
         console.log('インターバルをクリア');
       }
       redisClient.del(roomid);
+
+      var leaved_socket_list=[]
       Object.values(io.to(roomid).sockets).forEach((socket)=>{
+        console.log("removeする？");
         if(socket.rooms[roomid]){
+          console.log("yes");
           socket.removeAllListeners('start');
           socket.removeAllListeners('pull');
           socket.removeAllListeners('move');
           socket.removeAllListeners('cursor');
           socket.removeAllListeners('disconnect');
+          socket.emit('disconnected');
+          socket.leave(roomid);
+          leaved_socket_list.push(socket);
         }
       });
+      leaved_socket_list.forEach((socket)=>{
+        socket.emit('leaved-after-disconnect');
+      })
       socket.removeAllListeners('remove-interval');
       console.log('disconnected');
-      io.to(roomid).emit('disconnected');
     });
     socket.on('remove-interval',()=>{
       if(timer){
@@ -344,9 +382,31 @@ io.on('connection',function(socket){
 });
 
 app.use('/static', express.static(__dirname + '/static'));
+app.use('/skyway', express.static(__dirname + '/skyway'));
+
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '/static/index.html'));
 });
+
+app.post('/', (req,res)=>{
+  console.log(req.headers);
+})
+
+var getInformations = function(request){
+	return {
+		'リクエスト情報':{
+			'データ送信':request.method,
+			'ホスト（ヘッダー情報）':request.headers['host'],
+			'コネクション（ヘッダー情報）':request.headers['connection'],
+			'キャッシュコントロール（ヘッダー情報）':request.headers['cache-control'],
+			'アクセプト（ヘッダー情報）':request.headers['accept'],
+			'アップグレードリクエスト（ヘッダー情報）':request.headers['upgrade-insecure-requests'],
+			'ユーザーエージェント（ヘッダー情報）':request.headers['user-agent'],
+			'エンコード（ヘッダー情報）':request.headers['accept-encoding'],
+			'言語（ヘッダー情報）':request.headers['accept-language'],
+		}
+	};
+};
 
 server.listen(process.env.PORT || 3000, () => {
     console.log("Starting server on port"+port);
