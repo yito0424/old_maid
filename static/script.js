@@ -321,7 +321,7 @@ socket.on('finish',()=>{
 
 socket.on('location', (players,cursor) => {
     player_list=players;
-    console.log(players);
+    //console.log(players);
     Object.values(players).forEach((player,idx)=>{
         if(player.status=='pulled' || player.status=='pull'){
             const canvas=document.getElementById('canvas'+String(player.id));
@@ -364,7 +364,12 @@ socket.on('location', (players,cursor) => {
     });
 });
 
+socket.on('over-notice',()=>{
+    StartMsg.innerHTML='Over capacity';
+})
+
 socket.on('disconnected',()=>{
+    console.log("disconnected");
     StartMsg.innerHTML='Someone disconnected';
     player_list={};
     socket.emit('remove-interval');
